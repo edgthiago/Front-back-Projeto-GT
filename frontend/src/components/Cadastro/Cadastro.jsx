@@ -17,7 +17,7 @@ export default function Login() {
           <div className="col-md-6 p-5">
             <h2 className="fw-bold mb-2">Acesse sua conta</h2>
             <p className="text-muted mb-4">
-              Novo cliente? Então registre-se <a href="#">aqui</a>.
+              Novo cliente? Então registre-se <a href="criarConta">aqui</a>.
             </p>
 
             <form onSubmit={handleSubmit}>
