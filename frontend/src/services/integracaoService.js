@@ -4,20 +4,39 @@ import api from './api.js';
 // Serviço de Autenticação
 export const authService = {  // Login
   async login(email, senha) {
-    try {
-      const response = await api.post('/auth/login', { email, senha });
-      
-      if (response.sucesso && response.dados && response.dados.token) {
-        api.setToken(response.dados.token);
-        localStorage.setItem('usuario', JSON.stringify(response.dados.usuario || {}));
-      }
-      
-      return response;
-    } catch (error) {
-      console.error('Erro no login:', error);
-      throw error;
+  try {
+    const response = await api.post('/auth/login', { email, senha });
+
+    const dados = response?.data?.dados;
+    if (response?.data?.sucesso && dados?.token && dados?.usuario) {
+      // Salvar no localStorage
+      localStorage.setItem('token', dados.token);
+      localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+
+      // Setar token na instância do axios (se aplicável)
+      api.setToken(dados.token);
+
+      return {
+        sucesso: true,
+        usuario: dados.usuario,
+        token: dados.token
+      };
+    } else {
+      return {
+        sucesso: false,
+        mensagem: response?.data?.mensagem || 'Erro no login'
+      };
     }
-  },
+  } catch (error) {
+    console.error('Erro no login:', error);
+    return {
+      sucesso: false,
+      mensagem: 'Erro ao conectar ao servidor'
+    };
+  }
+},
+
+
 
   // Registro
   async register(dadosUsuario) {
@@ -52,7 +71,7 @@ export const authService = {  // Login
       if (!token) {
         return { sucesso: false, mensagem: 'Token não encontrado' };
       }
-      
+
       const response = await api.post('/auth/verificar-token', { token });
       return response;
     } catch (error) {
@@ -245,7 +264,7 @@ export const utilService = {
     try {
       // Remove formatação do CEP
       const cepLimpo = cep.replace(/\D/g, '');
-      
+
       if (cepLimpo.length !== 8) {
         throw new Error('CEP deve ter 8 dígitos');
       }
@@ -288,31 +307,31 @@ export const utilService = {
 
   validarCPF(cpf) {
     const cpfLimpo = cpf.replace(/\D/g, '');
-    
+
     if (cpfLimpo.length !== 11) return false;
-    
+
     // Verificar se todos os dígitos são iguais
     if (/^(\d)\1{10}$/.test(cpfLimpo)) return false;
-    
+
     // Validar dígitos verificadores
     let soma = 0;
     for (let i = 0; i < 9; i++) {
       soma += parseInt(cpfLimpo.charAt(i)) * (10 - i);
     }
-    
+
     let digito1 = 11 - (soma % 11);
     if (digito1 > 9) digito1 = 0;
-    
+
     soma = 0;
     for (let i = 0; i < 10; i++) {
       soma += parseInt(cpfLimpo.charAt(i)) * (11 - i);
     }
-    
+
     let digito2 = 11 - (soma % 11);
     if (digito2 > 9) digito2 = 0;
-    
-    return digito1 === parseInt(cpfLimpo.charAt(9)) && 
-           digito2 === parseInt(cpfLimpo.charAt(10));
+
+    return digito1 === parseInt(cpfLimpo.charAt(9)) &&
+      digito2 === parseInt(cpfLimpo.charAt(10));
   },
 
   formatarPreco(valor) {

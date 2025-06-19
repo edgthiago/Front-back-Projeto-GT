@@ -10,7 +10,10 @@ const Header = () => {
   const navigate = useNavigate();
   const path = location.pathname;
   const [searchTerm, setSearchTerm] = useState('');
-  const { obterQuantidadeItensCarrinho } = useCarrinho();  const { isAuthenticated, usuario, hasPermission } = useAuth();
+  const { obterQuantidadeItensCarrinho } = useCarrinho(); const { isAuthenticated, usuario, hasPermission } = useAuth();
+  console.log('👤 Usuário no Header:', usuario);
+
+  
 
   // Verificar se o usuário tem permissões administrativas baseado no novo sistema
   const isAdmin = usuario?.tipo_usuario && ['colaborador', 'supervisor', 'diretor'].includes(usuario.tipo_usuario);
@@ -47,18 +50,25 @@ const Header = () => {
           <button type="submit" className="header-search-button" aria-label="Buscar">
             <i className="bi bi-search header-search-icon"></i>
           </button>
-        </form>         {/* Botões de acesso: Cadastro, Login e Carrinho */}
+        </form>         
+        
+        {/* Botões de acesso: Cadastro, Login e Carrinho */}
+
         <div className="header-actions">
           {!isAuthenticated ? (
             <>
-              <Link to="/criarConta" className="header-register">Cadastre-se</Link>
-              <Link to='/cadastro'><button  className="header-login">Entrar</button></Link>
+              <Link to="/cadastro" className="header-register">Cadastre-se</Link>
+              <Link to='/entrar'>
+                <button className="header-login">Entrar</button>
+              </Link>
             </>
-          ) : (            <>              {isAdmin && (
+          ) : (
+            <>
+              {isAdmin && (
                 <div className="dropdown">
-                  <Link 
-                    to="#" 
-                    className="header-admin dropdown-toggle" 
+                  <Link
+                    to="#"
+                    className="header-admin dropdown-toggle"
                     data-bs-toggle="dropdown"
                     title="Painel Administrativo"
                   >
@@ -81,37 +91,54 @@ const Header = () => {
                   </ul>
                 </div>
               )}
-              
-              {/* Botão específico para finalizar compras - apenas usuários nível 2+ */}
+
               {(isUsuarioCompleto || isAdmin) && (
                 <Link to="/meus-pedidos" className="header-orders" title="Meus Pedidos">
                   <i className="bi bi-bag-check-fill"></i>
                   <span className="d-none d-lg-inline ms-1">Pedidos</span>
                 </Link>
               )}
-                <span className="header-user-name d-none d-md-inline">
-                Olá, {usuario?.nome?.split(' ')[0] || 'Usuário'}
-                {usuario?.tipo === 'visitante' && (
-                  <small className="text-warning ms-1">
-                    <Link to="/completar-cadastro" className="text-decoration-none">
-                      (Complete seu cadastro)
-                    </Link>
-                  </small>
-                )}
-              </span>
+
+              {/* NOME DO USUÁRIO + LINK PARA COMPLETAR CADASTRO */}
+              <div className="d-flex align-items-center ms-3">
+                <span className="header-user-name d-none d-md-inline me-2">
+                  Olá, {usuario?.nome?.split(' ')[0] || 'Usuário'}
+                  {usuario?.tipo === 'visitante' && (
+                    <small className="text-warning ms-1">
+                      <Link to="/completar-cadastro" className="text-decoration-none">
+                        (Complete seu cadastro)
+                      </Link>
+                    </small>
+                  )}
+                </span>
+                {/* BOTÃO DE LOGOUT */}
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
+                  className="btn btn-outline-secondary btn-sm"
+                  title="Sair da conta"
+                >
+                  <i className="bi bi-box-arrow-right"></i>
+                </button>
+              </div>
             </>
           )}
+
           <Link to="/carrinho" className="header-cart position-relative">
-            <i className="bi bi-cart-fill"></i>{obterQuantidadeItensCarrinho() > 0 && (
+            <i className="bi bi-cart-fill"></i>
+            {obterQuantidadeItensCarrinho() > 0 && (
               <span className="header-cart-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                 {obterQuantidadeItensCarrinho()}
               </span>
             )}
           </Link>
         </div>
+
       </header>
 
-  
+
       <>
         {/* Botão hamburguer - apenas mobile */}
         <div className="d-md-none p-2 bg-white">
@@ -165,7 +192,9 @@ const Header = () => {
               )}
             </ul>
           </div>
-        </div>        {/* Menu fixo - apenas desktop */}
+        </div>       
+        
+         {/* Menu fixo - apenas desktop */}
         <nav className="d-none d-md-block bg-white px-3 py-2 border-bottom">
           <ul className="nav justify-content-start">
             <li className="nav-item">

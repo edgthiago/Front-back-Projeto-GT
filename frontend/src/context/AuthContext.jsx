@@ -85,11 +85,13 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
       try {
         dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
-        
+
         const isLoggedIn = authService.isLoggedIn();
         const currentUser = authService.getCurrentUser();
 
         if (isLoggedIn && currentUser) {
+          console.log('🔍 Encontrado token e usuário:', currentUser);
+
           // Verificar se o token ainda é válido fazendo uma chamada para o backend
           try {
             const tokenValid = await authService.verificarToken();
@@ -98,11 +100,15 @@ export const AuthProvider = ({ children }) => {
                 type: AUTH_ACTIONS.LOGIN_SUCCESS,
                 payload: { usuario: currentUser }
               });
+
+              console.log('✅ LOGIN_SUCCESS disparado com usuário:', currentUser);
+
             } else {
               // Token inválido, fazer logout
               authService.logout();
               dispatch({ type: AUTH_ACTIONS.LOGOUT });
-            }          } catch {
+            }
+          } catch {
             // Se a verificação falhar, considerar como não autenticado
             authService.logout();
             dispatch({ type: AUTH_ACTIONS.LOGOUT });
@@ -118,13 +124,18 @@ export const AuthProvider = ({ children }) => {
 
     checkAuthStatus();
   }, []);
+
+
+
   // Função de login
   const login = useCallback(async (email, senha) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
-      
+
       const response = await authService.login(email, senha);
-      
+
+      console.log('🔐 RESPONSE RECEBIDO:', response);
+
       if (response.sucesso) {
         dispatch({
           type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -147,13 +158,18 @@ export const AuthProvider = ({ children }) => {
       return { sucesso: false, mensagem: errorMessage };
     }
   }, []);
+
+
+
+
+
   // Função de registro
   const register = useCallback(async (dadosUsuario) => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
-      
+
       const response = await authService.register(dadosUsuario);
-      
+
       if (response.sucesso) {
         // Após registro bem-sucedido, fazer login automático
         if (response.token) {
@@ -171,7 +187,7 @@ export const AuthProvider = ({ children }) => {
           payload: response.mensagem || 'Erro no registro'
         });
       }
-      
+
       return response;
     } catch (error) {
       const errorMessage = error.message || 'Erro interno no registro';
@@ -197,7 +213,7 @@ export const AuthProvider = ({ children }) => {
       type: AUTH_ACTIONS.UPDATE_USER,
       payload: dadosAtualizados
     });
-    
+
     // Atualizar no localStorage também
     const usuarioAtual = authService.getCurrentUser();
     if (usuarioAtual) {
@@ -208,17 +224,17 @@ export const AuthProvider = ({ children }) => {
   // Verificar se usuário tem permissão
   const hasPermission = useCallback((permissao) => {
     if (!state.usuario) return false;
-    
+
     const { tipo_usuario, permissoes } = state.usuario;
-    
+
     // Admin tem todas as permissões
     if (tipo_usuario === 'admin') return true;
-    
+
     // Verificar permissões específicas
     if (permissoes && Array.isArray(permissoes)) {
       return permissoes.includes(permissao);
     }
-    
+
     return false;
   }, [state.usuario]);
   // Verificar se é admin
@@ -234,14 +250,14 @@ export const AuthProvider = ({ children }) => {
   const value = {
     // Estado
     ...state,
-    
+
     // Ações
     login,
     register,
     logout,
     clearError,
     updateUser,
-    
+
     // Utilitários
     hasPermission,
     isAdmin,
@@ -258,11 +274,11 @@ export const AuthProvider = ({ children }) => {
 // Hook para usar o contexto de autenticação
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
+
   if (!context) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
-  
+
   return context;
 };
 
