@@ -51,8 +51,8 @@ const Header = () => {
         <div className="header-actions">
           {!isAuthenticated ? (
             <>
-              <Link to="/cadastro" className="header-register">Cadastre-se</Link>
-              <Link to='/entrar'><button  className="header-login">Entrar</button></Link>
+              <Link to="/criarConta" className="header-register">Cadastre-se</Link>
+              <Link to='/cadastro'><button  className="header-login">Entrar</button></Link>
             </>
           ) : (            <>              {isAdmin && (
                 <div className="dropdown">
