@@ -5,14 +5,28 @@ export default function Cadastro() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [erro, setErro] = useState('');
+  const [cadastroRealizado, setCadastroRealizado] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
+    
+    // Validações no frontend
+    if (senha !== confirmarSenha) {
+      setErro('As senhas não coincidem');
+      return;
+    }
+    
+    if (senha.length < 6) {
+      setErro('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
 
+    console.log('Enviando dados para cadastro:', { nome, email });
     try {
-      const resposta = await fetch('http://localhost:3000/usuarios', {
+      const resposta = await fetch('http://localhost:5000/api/auth/registrar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -20,18 +34,28 @@ export default function Cadastro() {
         body: JSON.stringify({
           nome,
           email,
-          senha
+          senha,
+          confirmar_senha: confirmarSenha
         })
-      });
-
-      const dados = await resposta.json();
+      });      const dados = await resposta.json();
+      console.log('Resposta do cadastro:', dados);
 
       if (!resposta.ok) {
-        throw new Error(dados.message || 'Erro ao cadastrar');
+        throw new Error(dados.mensagem || 'Erro ao cadastrar');
       }
 
-      alert('Cadastro realizado com sucesso!');
-      window.location.href = '/login';
+      // Cadastro realizado com sucesso
+      setCadastroRealizado(true);
+      
+      // Se quiser guardar o token e redirecionar direto
+      if (dados.dados && dados.dados.token) {
+        localStorage.setItem('token', dados.dados.token);
+        localStorage.setItem('usuario', JSON.stringify(dados.dados.usuario));
+      }
+      
+      setTimeout(() => {
+        window.location.href = '/entrar';
+      }, 2000);
     } catch (erro) {
       console.error('Erro ao cadastrar:', erro);
       setErro(erro.message);
@@ -50,6 +74,11 @@ export default function Cadastro() {
             </p>
 
             {erro && <div className="alert alert-danger">{erro}</div>}
+            {cadastroRealizado && (
+              <div className="alert alert-success">
+                Cadastro realizado com sucesso! Redirecionando para login...
+              </div>
+            )}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -74,22 +103,35 @@ export default function Cadastro() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-              </div>
-
-              <div className="mb-3">
+              </div>              <div className="mb-3">
                 <label className="form-label">Senha *</label>
                 <input
                   type="password"
                   className="form-control"
-                  placeholder="Insira sua senha"
+                  placeholder="Insira sua senha (mínimo 6 caracteres)"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Confirmar Senha *</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder="Confirme sua senha"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
                   required
                 />
               </div>
 
               <div className="d-grid">
-                <button type="submit" className="btn btn-danger">Criar Conta</button>
+                <button type="submit" className="btn btn-danger" disabled={cadastroRealizado}>
+                  {cadastroRealizado ? 'Cadastro realizado!' : 'Criar Conta'}
+                </button>
               </div>
             </form>
 
@@ -97,7 +139,7 @@ export default function Cadastro() {
               <small className="text-muted">Ou crie sua conta com</small>
               <div className="d-flex justify-content-center gap-3 mt-2">
                 <img src="img/Microsoft_logo.svg.png" alt="Microsoft" height="20" />
-                <img src="img/Google__G__logo.svg.png" alt="Google" height="20" />
+                <img src="img/Google_G_logo.svg.png" alt="Google" height="20" />
                 <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook" height="20" />
               </div>
             </div>
@@ -114,6 +156,6 @@ export default function Cadastro() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>
+  );
 }

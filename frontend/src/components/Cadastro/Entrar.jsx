@@ -10,7 +10,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const resposta = await fetch('http://localhost:3000/login', {
+      const resposta = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -30,7 +30,7 @@ export default function Login() {
       // Armazenar token e redirecionar
       localStorage.setItem('token', dados.token);
       alert('Login realizado com sucesso!');
-      window.location.href = '/home'; // redirecionamento após login
+      window.location.href = '/'; // redirecionamento após login
 
     } catch (erro) {
       console.error('Erro ao fazer login:', erro);
